@@ -17,10 +17,10 @@
   
   ```
   执行
-  go get -u github.com/forgoer/openssl
   go get -u github.com/lxn/walk
-  go get -u github.com/tjfoc/gmsm
   go get github.com/akavel/rsrc
+  go get -u golang.org/x/crypto/ssh
+  go get -u github.com/pkg/sftp
   ```
 * 准备工作
   
