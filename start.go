@@ -16,7 +16,7 @@ func main() {
 	mw := &MyMainWindow{}
 	err := MainWindow{
 		AssignTo: &mw.MainWindow,   //窗口重定向至mw，重定向后可由重定向变量控制控件
-		Title:    "server-upgrade", //标题
+		Title:    "Server-Upgrade", //标题
 		MinSize:  Size{Width: 400, Height: 300},
 		Size:     Size{Width: 800, Height: 300},
 		Layout:   HBox{}, //样式，纵向
@@ -24,8 +24,50 @@ func main() {
 			// 组容器
 			GroupBox{
 				Layout:  VBox{},
-				MaxSize: Size{Width: 400, Height: 400},
+				MaxSize: Size{Width: 410, Height: 400},
 				Children: []Widget{
+					GroupBox{
+						Title:  "产品名称",
+						Layout: HBox{},
+						Children: []Widget{
+							ComboBox{
+								Value:         Bind("SpeciesId", SelRequired{}),
+								BindingMember: "Id",
+								DisplayMember: "Name",
+								Model:         knownSpecies(),
+							},
+						},
+					},
+					//GroupBox{
+					//	Title:  "产品版本",
+					//	Layout: VBox{},
+					//	Children: []Widget{
+					//		ComboBox{
+					//			Value:         Bind("SpeciesId", SelRequired{}),
+					//			BindingMember: "Id",
+					//			DisplayMember: "Name",
+					//			Model:         version(),
+					//		},
+					//	},
+					//},
+					GroupBox{
+						Title:  "升级内容",
+						Layout: HBox{},
+						Children: []Widget{
+							CheckBox{
+								Text:    "管理平台根链升级",
+								Checked: Bind("Domesticated"),
+							},
+							CheckBox{
+								Text:    "三级根证书升级",
+								Checked: Bind("Domesticated"),
+							},
+							CheckBox{
+								Text:    "SHA1算法升级到SHA256",
+								Checked: Bind("Domesticated"),
+							},
+						},
+					},
 					GroupBox{
 						Title:  "升级服务器配置",
 						Layout: VBox{},
@@ -54,24 +96,6 @@ func main() {
 							LineEdit{
 								PasswordMode: true,
 							},
-							GroupBox{
-								Title:  "升级内容",
-								Layout: HBox{},
-								Children: []Widget{
-									CheckBox{
-										Text:    "管理平台根链升级",
-										Checked: Bind("Domesticated"),
-									},
-									CheckBox{
-										Text:    "三级根证书升级",
-										Checked: Bind("Domesticated"),
-									},
-									CheckBox{
-										Text:    "SHA1算法升级到SHA256",
-										Checked: Bind("Domesticated"),
-									},
-								},
-							},
 						},
 					},
 				},
@@ -91,11 +115,23 @@ func main() {
 						},
 					},
 					GroupBox{
+						Title:  "执行结果",
+						Layout: VBox{},
+						Children: []Widget{
+							TextEdit{
+								MaxLength: int(^uint(0) >> 1),
+								AssignTo:  &mw.Edit,
+								ReadOnly:  true,
+								VScroll:   true,
+							},
+						},
+					},
+					GroupBox{
 						Title:  "操作",
 						Layout: VBox{},
 						Children: []Widget{
 							PushButton{
-								Text:      "打开文件",
+								Text:      "选择对应版本升级包",
 								OnClicked: mw.selectFile, //点击事件响应函数
 							},
 							PushButton{
@@ -133,4 +169,23 @@ func (mw *MyMainWindow) selectFile() {
 	}
 
 	mw.MouseDown()
+}
+
+func knownSpecies() []*Species {
+	return []*Species{
+		{1, "手写信息数字签名系统"},
+		{2, "PDF签章服务器"},
+	}
+}
+
+func version() []*Species {
+	return []*Species{
+		{1, "1.3.6"},
+		{2, "1.3.7"},
+	}
+}
+
+type Species struct {
+	Id   int
+	Name string
 }
