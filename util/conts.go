@@ -1,9 +1,16 @@
 package util
 
-import "errors"
+import (
+	"errors"
+)
 
 const (
-	ADMIN = "admin"
+	CONNECTED = "获取SSH连接："
+	READFILE  = "读取升级文件："
+	UPLOAD    = "升级包上传："
+	BACKUP    = "执行备份："
+	UPGRADE   = "执行升级："
+	ROLLBACK  = "执行回滚："
 )
 
 const (

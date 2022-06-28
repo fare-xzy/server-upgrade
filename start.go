@@ -4,15 +4,13 @@ import (
 	"fmt"
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
+	"log"
 	"os"
 )
 
-type MyMainWindow struct {
-	*walk.MainWindow
-	Edit *walk.TextEdit
-}
-
 func main() {
+	var db *walk.DataBinder
+	attr := new(Attributes)
 	mw := &MyMainWindow{}
 	err := MainWindow{
 		AssignTo: &mw.MainWindow,   //窗口重定向至mw，重定向后可由重定向变量控制控件
@@ -20,6 +18,12 @@ func main() {
 		MinSize:  Size{Width: 400, Height: 300},
 		Size:     Size{Width: 800, Height: 300},
 		Layout:   HBox{}, //样式，纵向
+		DataBinder: DataBinder{
+			AssignTo:       &db,
+			Name:           "attr",
+			DataSource:     attr,
+			ErrorPresenter: ToolTipErrorPresenter{},
+		},
 		Children: []Widget{ //控件组
 			// 组容器
 			GroupBox{
@@ -31,7 +35,7 @@ func main() {
 						Layout: HBox{},
 						Children: []Widget{
 							ComboBox{
-								Value:         Bind("SpeciesId", SelRequired{}),
+								//Value:         Bind("SpeciesId", SelRequired{}),
 								BindingMember: "Id",
 								DisplayMember: "Name",
 								Model:         knownSpecies(),
@@ -55,16 +59,16 @@ func main() {
 						Layout: HBox{},
 						Children: []Widget{
 							CheckBox{
-								Text:    "管理平台根链升级",
-								Checked: Bind("Domesticated"),
+								Text: "管理平台根链升级",
+								//Checked: Bind("Domesticated"),
 							},
 							CheckBox{
-								Text:    "三级根证书升级",
-								Checked: Bind("Domesticated"),
+								Text: "三级根证书升级",
+								//Checked: Bind("Domesticated"),
 							},
 							CheckBox{
-								Text:    "SHA1算法升级到SHA256",
-								Checked: Bind("Domesticated"),
+								Text: "SHA1算法升级到SHA256",
+								//Checked: Bind("Domesticated"),
 							},
 						},
 					},
@@ -77,24 +81,28 @@ func main() {
 							},
 							LineEdit{
 								CueBanner: "127.0.0.1",
+								Text:      Bind("Host"),
 							},
 							Label{
 								Text: "SSH端口:",
 							},
 							LineEdit{
 								CueBanner: "22",
+								Text:      Bind("Port"),
 							},
 							Label{
 								Text: "SSH用户名:",
 							},
 							LineEdit{
 								CueBanner: "root",
+								Text:      Bind("User"),
 							},
 							Label{
 								Text: "SSH密码:",
 							},
 							LineEdit{
 								PasswordMode: true,
+								Text:         Bind("Password"),
 							},
 						},
 					},
@@ -120,7 +128,7 @@ func main() {
 						Children: []Widget{
 							TextEdit{
 								MaxLength: int(^uint(0) >> 1),
-								AssignTo:  &mw.Edit,
+								AssignTo:  &mw.OutPut,
 								ReadOnly:  true,
 								VScroll:   true,
 							},
@@ -132,11 +140,20 @@ func main() {
 						Children: []Widget{
 							PushButton{
 								Text:      "选择对应版本升级包",
-								OnClicked: mw.selectFile, //点击事件响应函数
+								OnClicked: mw.SelectFile, //点击事件响应函数
 							},
 							PushButton{
 								Text: "一键升级",
-								//OnClicked: mw.saveFile,
+								OnClicked: func() {
+									if err := db.Submit(); err != nil {
+										log.Print(err)
+										return
+									}
+									fmt.Print(attr.Port)
+									fmt.Print(attr.Host)
+									fmt.Print(attr.User)
+									fmt.Print(attr.Password)
+								},
 							},
 						},
 					},
@@ -151,24 +168,6 @@ func main() {
 	}
 
 	mw.Run() //运行
-}
-
-func (mw *MyMainWindow) selectFile() {
-
-	dlg := new(walk.FileDialog)
-	dlg.Title = "选择文件"
-	dlg.Filter = "文本文件 (*.tar.gz)|所有文件 (*.*)|*.*"
-
-	mw.Edit.SetText("") //通过重定向变量设置TextEdit的Text
-	if ok, err := dlg.ShowOpen(mw); err != nil {
-		mw.Edit.AppendText("Error : File Open\r\n")
-		return
-	} else if !ok {
-		mw.Edit.AppendText("Cancel\r\n")
-		return
-	}
-
-	mw.MouseDown()
 }
 
 func knownSpecies() []*Species {

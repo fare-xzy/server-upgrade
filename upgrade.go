@@ -1,4 +1,4 @@
-package connect
+package main
 
 import (
 	"fmt"
@@ -6,30 +6,24 @@ import (
 	"golang.org/x/crypto/ssh"
 	"log"
 	"net"
-	"server-upgrade/util"
 	"strings"
 	"time"
 )
 
 type Attributes struct {
-	Host     string `yaml:"host"`
-	Port     string `yaml:"port"`
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
-	Specify  bool   `yaml:"specify"`
+	Host     string
+	Port     string
+	User     string
+	Password string
 }
 
-//var conn *ssh.Client
-
-// 测试SSH连接
-func Connect_test(attr Attributes) error {
+func NetworkTest(attr Attributes) error {
 	joinHostPort := net.JoinHostPort(attr.Host, attr.Port)
 	_, err := net.DialTimeout("tcp", joinHostPort, 3*time.Second)
 	return err
 }
 
-// SSH连接
-func Ssh_connect(attr Attributes) (*ssh.Client, error) {
+func ConnectSsh(attr Attributes) (*ssh.Client, error) {
 	auth := make([]ssh.AuthMethod, 0)
 	auth = append(auth, ssh.Password(attr.Password))
 
@@ -46,18 +40,17 @@ func Ssh_connect(attr Attributes) (*ssh.Client, error) {
 	return sshClient, err
 }
 
-// FTP连接
-func Sftp_connect(sshClient *ssh.Client) (*sftp.Client, error) {
+func Readfile() {
 
+}
+func ConnectFtp(sshClient *ssh.Client) (*sftp.Client, error) {
 	client, err := sftp.NewClient(sshClient)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return client, err
 }
-
-// FTP上传文件
-func Sftp_upload(client *sftp.Client, gz []byte) (string, error) {
+func Upload(client *sftp.Client, gz []byte) (string, error) {
 	w := client.Walk("~/")
 	//w := client.Walk("~/upgrade/")
 	for w.Step() {
@@ -85,16 +78,19 @@ func Sftp_upload(client *sftp.Client, gz []byte) (string, error) {
 	return currentTime, err
 }
 
-// 执行升级操作
-func doExecution(sshClient *ssh.Client, currentTime string, attr Attributes) error {
+func Unzip(sshClient *ssh.Client, currentTime string) error {
 	// 解压文件
 	combo, err := execute(sshClient, fmt.Sprintf("tar -zxPvf ~/%s/%s -C ./%s/", currentTime, currentTime+".tar.gz", currentTime))
 	if err != nil {
 		return err
 	}
 	log.Println("解压命令输出:", string(combo))
+	return nil
+}
+
+func Backup(sshClient *ssh.Client, currentTime string) error {
 	// 执行备份脚本
-	combo, err = execute(sshClient, fmt.Sprintf("find ~/%s/upgrade/backup.sh -type f | wc -l", currentTime))
+	combo, err := execute(sshClient, fmt.Sprintf("find ~/%s/upgrade/backup.sh -type f | wc -l", currentTime))
 	if strings.EqualFold(strings.TrimSpace(string(combo)), "1") {
 		combo, err = execute(sshClient, fmt.Sprintf("sh ~/%s/upgrade/backup.sh", currentTime))
 		log.Println("备份命令输出:", string(combo))
@@ -104,17 +100,21 @@ func doExecution(sshClient *ssh.Client, currentTime string, attr Attributes) err
 	} else {
 		log.Println("命令输出:", "程序无备份脚本，跳过备份步骤")
 	}
+	return nil
+}
+
+func Upgrade(sshClient *ssh.Client, currentTime string) error {
 	// 执行升级脚本
-	if strings.EqualFold(attr.User, util.ADMIN) && attr.Specify {
-		combo, err = execute(sshClient, fmt.Sprintf("echo %s | sudo -S sh ~/%s/upgrade/upgrade.sh %s", attr.Password, currentTime, "~/"+currentTime+"/upgrade"))
-	} else {
-		combo, err = execute(sshClient, fmt.Sprintf("sh ~/%s/upgrade/upgrade.sh %s", currentTime, "~/"+currentTime+"/upgrade"))
-	}
+	combo, err := execute(sshClient, fmt.Sprintf("sh ~/%s/upgrade/upgrade.sh %s", currentTime, "~/"+currentTime+"/upgrade"))
 	if err != nil {
 		return err
 	}
 	log.Println("升级命令输出:", string(combo))
 	return err
+}
+
+func Rollback() {
+
 }
 
 // 远程执行并返回执行结果
@@ -123,35 +123,4 @@ func execute(sshClient *ssh.Client, cmd string) ([]byte, error) {
 	defer session.Close()
 	combo, err := session.CombinedOutput(cmd)
 	return combo, err
-}
-
-func Execution(attr Attributes, gz []byte) error {
-	// 获取ssh连接
-	sshConnect, err := Ssh_connect(attr)
-	if err != nil {
-		log.Println("服务器SSH连接失败：", err)
-		panic(err)
-	}
-	defer sshConnect.Close()
-	// 获取sftp连接
-	sftpConnect, err := Sftp_connect(sshConnect)
-	if err != nil {
-		log.Println("服务器SFTP连接失败：", err)
-		panic(err)
-	}
-	defer sftpConnect.Close()
-
-	// sftp上传文件
-	currentTime, err := Sftp_upload(sftpConnect, gz)
-	if err != nil {
-		log.Println("sftp上传文件失败：", err)
-		panic(err)
-	}
-	// 执行
-	err = doExecution(sshConnect, currentTime, attr)
-	if err != nil {
-		log.Println("执行升级脚本失败：", err)
-		panic(err)
-	}
-	return err
 }
