@@ -80,22 +80,19 @@ func main() {
 								Text: "服务器IP:",
 							},
 							LineEdit{
-								CueBanner: "127.0.0.1",
-								Text:      Bind("Host"),
+								Text: Bind("Host"),
 							},
 							Label{
 								Text: "SSH端口:",
 							},
 							LineEdit{
-								CueBanner: "22",
-								Text:      Bind("Port"),
+								Text: Bind("Port"),
 							},
 							Label{
 								Text: "SSH用户名:",
 							},
 							LineEdit{
-								CueBanner: "root",
-								Text:      Bind("User"),
+								Text: Bind("User"),
 							},
 							Label{
 								Text: "SSH密码:",
@@ -149,10 +146,7 @@ func main() {
 										log.Print(err)
 										return
 									}
-									fmt.Print(attr.Port)
-									fmt.Print(attr.Host)
-									fmt.Print(attr.User)
-									fmt.Print(attr.Password)
+									Do(attr)
 								},
 							},
 						},

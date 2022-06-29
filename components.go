@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"github.com/lxn/walk"
+	"server-upgrade/util"
+	"strings"
 )
 
 type MyMainWindow struct {
@@ -29,12 +30,17 @@ func (mw *MyMainWindow) SelectFile() {
 	mw.MouseDown()
 }
 
+// CheckParams 参数校验
+func CheckParams(attr *Attributes) error {
+	if strings.EqualFold("", attr.Host) || strings.EqualFold("", attr.Port) || strings.EqualFold("", attr.User) || strings.EqualFold("", attr.Password) {
+		return util.PARAMS_ERROR
+	}
+	return nil
+}
+
 // Do 升级按纽
 func Do(attr *Attributes) {
-	fmt.Print(attr.Port)
-	fmt.Print(attr.Host)
-	fmt.Print(attr.User)
-	fmt.Print(attr.Password)
+	CheckParams(attr)
 	//NetworkTest()
 	//ConnectSsh()
 	//Readfile()

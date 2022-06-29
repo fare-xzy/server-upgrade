@@ -19,6 +19,7 @@ const (
 )
 
 var (
+	PARAMS_ERROR       = errors.New("参数异常，请重新输入")
 	ERR_EOF            = errors.New("EOF")
 	ERR_CLOSED_PIPE    = errors.New("io: read/write on closed pipe")
 	ERR_NO_PROGRESS    = errors.New("multiple Read calls return no data or error")
