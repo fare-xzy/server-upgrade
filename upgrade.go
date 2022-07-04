@@ -6,15 +6,17 @@ import (
 	"golang.org/x/crypto/ssh"
 	"log"
 	"net"
+	"server-upgrade/util"
 	"strings"
 	"time"
 )
 
 type Attributes struct {
-	Host     string
-	Port     string
-	User     string
-	Password string
+	Host        string
+	Port        string
+	User        string
+	Password    string
+	PackagePath string
 }
 
 func NetworkTest(attr Attributes) error {
@@ -23,7 +25,7 @@ func NetworkTest(attr Attributes) error {
 	return err
 }
 
-func ConnectSsh(attr Attributes) (*ssh.Client, error) {
+func ConnectSsh(attr *Attributes) (*ssh.Client, error) {
 	auth := make([]ssh.AuthMethod, 0)
 	auth = append(auth, ssh.Password(attr.Password))
 
@@ -40,8 +42,8 @@ func ConnectSsh(attr Attributes) (*ssh.Client, error) {
 	return sshClient, err
 }
 
-func Readfile() {
-
+func Readfile(attr *Attributes) ([]byte, error) {
+	return util.ReadFileOnce(attr.PackagePath)
 }
 func ConnectFtp(sshClient *ssh.Client) (*sftp.Client, error) {
 	client, err := sftp.NewClient(sshClient)

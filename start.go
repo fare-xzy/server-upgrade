@@ -136,8 +136,10 @@ func main() {
 						Layout: VBox{},
 						Children: []Widget{
 							PushButton{
-								Text:      "选择对应版本升级包",
-								OnClicked: mw.SelectFile, //点击事件响应函数
+								Text: "选择对应版本升级包",
+								OnClicked: func() {
+									mw.SelectFile(attr)
+								}, //点击事件响应函数
 							},
 							PushButton{
 								Text: "一键升级",
@@ -146,7 +148,7 @@ func main() {
 										log.Print(err)
 										return
 									}
-									Do(attr)
+									mw.Do(attr)
 								},
 							},
 						},
