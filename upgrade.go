@@ -17,8 +17,6 @@ type Attributes struct {
 	User        string
 	Password    string
 	PackagePath string
-	Status      bool
-	FileHash    string
 }
 
 func NetworkTest(attr Attributes) error {
