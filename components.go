@@ -18,7 +18,7 @@ func (mw *MyMainWindow) SelectFile(attr *Attributes) {
 	dlg.Title = "选择文件"
 	dlg.Filter = "文本文件 (*.tar.gz)|*.gz|所有文件 (*.*)|*.*"
 
-	mw.Edit.SetText("") //通过重定向变量设置TextEdit的Text
+	mw.OutPut.SetText("") //通过重定向变量设置TextEdit的Text
 	if ok, err := dlg.ShowOpen(mw); err != nil {
 		mw.OutPut.AppendText("Error : File Open\r\n")
 		return
@@ -79,6 +79,13 @@ func (mw *MyMainWindow) Do(attr *Attributes) {
 		mw.textEditAppend(err.Error())
 		return
 	}
+	mw.textEditAppend(COMPLETE + ENTER + UNZIP)
+	// 解压升级包
+	err = Unzip(ssh, currentTime)
+	if err != nil {
+		mw.textEditAppend(err.Error())
+		return
+	}
 	// 执行备份脚本
 	mw.textEditAppend(COMPLETE + ENTER + BACKUP)
 	err = Backup(ssh, currentTime)
@@ -92,10 +99,16 @@ func (mw *MyMainWindow) Do(attr *Attributes) {
 	if err != nil {
 		mw.textEditAppend(err.Error())
 		// 执行回滚脚本
-		mw.textEditAppend(ENTER + UPGRADE)
-		Rollback()
+		mw.textEditAppend(ENTER + ROLLBACK)
+		err := Rollback(ssh, currentTime)
+		if err != nil {
+			mw.textEditAppend(err.Error())
+			return
+		}
+		mw.textEditAppend(COMPLETE)
 		return
 	}
+	mw.textEditAppend(COMPLETE)
 }
 
 // TextEditAppend 输出

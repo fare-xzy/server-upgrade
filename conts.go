@@ -13,6 +13,7 @@ const (
 	READFILE       = "读取升级文件："
 	CONNECTFTP     = "获取FTP连接："
 	UPLOAD         = "升级包上传："
+	UNZIP          = "解压升级文件："
 	BACKUP         = "执行备份："
 	UPGRADE        = "执行升级："
 	ROLLBACK       = "执行回滚："

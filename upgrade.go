@@ -17,6 +17,8 @@ type Attributes struct {
 	User        string
 	Password    string
 	PackagePath string
+	Status      bool
+	FileHash    string
 }
 
 func NetworkTest(attr Attributes) error {
@@ -61,7 +63,7 @@ func Upload(client *sftp.Client, gz []byte) (string, error) {
 		}
 	}
 	currentTime := time.Now().Format("20060102150405")
-	client.Mkdir(currentTime)
+	client.MkdirAll(currentTime + "/" + "backup")
 	fileName := fmt.Sprintf("%s/%s", currentTime, currentTime+".tar.gz")
 	f, err := client.Create(fileName)
 	if err != nil {
@@ -115,8 +117,19 @@ func Upgrade(sshClient *ssh.Client, currentTime string) error {
 	return err
 }
 
-func Rollback() {
-
+func Rollback(sshClient *ssh.Client, currentTime string) error {
+	// 执行备份脚本
+	combo, err := execute(sshClient, fmt.Sprintf("find ~/%s/upgrade/rollback.sh -type f | wc -l", currentTime))
+	if strings.EqualFold(strings.TrimSpace(string(combo)), "1") {
+		combo, err = execute(sshClient, fmt.Sprintf("sh ~/%s/upgrade/rollback.sh", currentTime))
+		log.Println("备份命令输出:", string(combo))
+		if err != nil {
+			return err
+		}
+	} else {
+		log.Println("命令输出:", "程序无回滚脚本，跳过回滚步骤")
+	}
+	return nil
 }
 
 // 远程执行并返回执行结果
